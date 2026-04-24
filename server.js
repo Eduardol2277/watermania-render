@@ -91,7 +91,7 @@ ${!hasPhotos ? `4. Busca la imagen OFICIAL y EXACTA de "${productId}" — solo d
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 8000,
+        max_tokens: 16000,
         system: SYSTEM_PROMPT,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: userContent }]
@@ -103,7 +103,7 @@ ${!hasPhotos ? `4. Busca la imagen OFICIAL y EXACTA de "${productId}" — solo d
 
     let html = d1.content?.find(b => b.type === 'text')?.text || '';
 
-    if (!html || html.length < 200) {
+    if (!html || html.length < 500) {
       const r2 = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
