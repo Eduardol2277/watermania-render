@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grupo Watermanía — Generador de Brochures</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --wm-blue: #29ABE2;
+    --wm-blue-dark: #1a85b5;
+    --wm-blue-deep: #0d5a7a;
+    --wm-gray: #B8C4CC;
+    --wm-dark: #0e1c24;
+    --wm-surface: #f4f8fb;
+    --wm-border: #d4e6f0;
+    --wm-text: #1a2a35;
+    --wm-text-muted: #5a7080;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--wm-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── Login overlay ── */
+  #login-screen {
+    position: fixed; inset: 0;
+    background: var(--wm-dark);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    width: 100%; max-width: 400px;
+    text-align: center;
+  }
+  .login-logo {
+    width: 72px; height: 72px;
+    background: var(--wm-blue);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 36px; font-weight: 700;
+    color: #fff;
+  }
+  .login-card h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--wm-text); margin-bottom: 6px;
+    letter-spacing: 0.02em; text-transform: uppercase;
+  }
+  .login-card p { font-size: 13px; color: var(--wm-text-muted); margin-bottom: 28px; }
+  .login-field {
+    position: relative; margin-bottom: 14px;
+  }
+  .login-field input {
+    width: 100%; padding: 13px 16px;
+    font-size: 14px; font-family: 'Barlow', sans-serif;
+    border: 1.5px solid var(--wm-border);
+    border-radius: var(--radius);
+    background: var(--wm-surface);
+    color: var(--wm-text);
+    outline: none; transition: border-color 0.2s;
+  }
+  .login-field input:focus { border-color: var(--wm-blue); }
+  .login-btn {
+    width: 100%; padding: 14px;
+    background: var(--wm-blue); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 15px; font-weight: 600;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.2s;
+    margin-top: 6px;
+  }
+  .login-btn:hover { background: var(--wm-blue-dark); }
+  .login-error {
+    font-size: 12px; color: #e53e3e;
+    margin-top: 10px; display: none;
+  }
+
+  /* ── App shell ── */
+  #app { display: none; width: 100%; max-width: 860px; padding: 0 16px 48px; }
+
+  header {
+    background: var(--wm-blue);
+    width: 100vw; margin-left: calc(-50vw + 50%);
+    padding: 16px 32px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 32px;
+  }
+  .header-logo {
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .header-logo img { width: 52px; height: 52px; object-fit: contain; mix-blend-mode: screen; }
+  .header-text h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: #fff; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .header-text p { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+  .header-logout {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; font-size: 12px;
+    padding: 6px 14px; border-radius: 20px;
+    cursor: pointer; font-family: 'Barlow', sans-serif;
+    transition: background 0.2s;
+  }
+  .header-logout:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── Card ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--wm-blue); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--wm-border);
+  }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab {
+    padding: 8px 18px; font-size: 13px; font-weight: 500;
+    font-family: 'Barlow', sans-serif;
+    color: var(--wm-text-muted); background: var(--wm-surface);
+    border: 1px solid var(--wm-border);
+    border-radius: 20px; cursor: pointer; transition: all 0.15s;
+  }
+  .tab.active {
+    background: var(--wm-blue); color: #fff;
+    border-color: var(--wm-blue);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed var(--wm-border);
+    border-radius: var(--radius);
+    padding: 28px 20px; text-align: center;
+    cursor: pointer; transition: all 0.2s;
+    background: var(--wm-surface);
+  }
+  .drop-zone:hover, .drop-zone.over {
+    border-color: var(--wm-blue);
+    background: #e8f5fc;
+  }
+  .drop-zone .dz-icon {
+    font-size: 28px; margin-bottom: 10px;
+  }
+  .drop-zone p { font-size: 13px; color: var(--wm-text-muted); line-height: 1.5; }
+  .drop-zone strong { color: var(--wm-blue); }
+
+  /* ── Photo thumbnails ── */
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .photo-thumb {
+    position: relative; width: 72px; height: 72px;
+    border-radius: 8px; overflow: hidden;
+    border: 1.5px solid var(--wm-border);
+  }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-thumb button {
+    position: absolute; top: 3px; right: 3px;
+    width: 18px; height: 18px;
+    background: rgba(0,0,0,0.65); color: #fff;
+    border: none; border-radius: 50%; font-size: 10px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--wm-text-muted); margin-bottom: 5px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .field input, .field textarea {
+    width: 100%; padding: 10px 14px;
+    font-size: 14px; font-family: 'Barlow', sans-serif;
+    border: 1.5px solid var(--wm-border);
+    border-radius: var(--radius);
+    background: var(--wm-surface); color: var(--wm-text);
+    outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--wm-blue); }
+  .field textarea { resize: vertical; min-height: 110px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── Format cards ── */
+  .fmt-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .fmt-card {
+    border: 1.5px solid var(--wm-border);
+    border-radius: var(--radius);
+    padding: 14px 10px; text-align: center;
+    cursor: pointer; transition: all 0.15s;
+    background: var(--wm-surface);
+  }
+  .fmt-card:hover { border-color: var(--wm-blue); }
+  .fmt-card.selected { border-color: var(--wm-blue); background: #e8f5fc; }
+  .fmt-card .fi { font-size: 22px; margin-bottom: 6px; }
+  .fmt-card .fn { font-size: 13px; font-weight: 600; color: var(--wm-text); }
+  .fmt-card .fd { font-size: 11px; color: var(--wm-text-muted); margin-top: 3px; }
+
+  /* ── Sections note ── */
+  .sections-banner {
+    background: linear-gradient(135deg, #e8f5fc 0%, #f0faff 100%);
+    border: 1px solid #b8dff0;
+    border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 20px;
+    font-size: 12px; color: var(--wm-text-muted); line-height: 1.7;
+  }
+  .sections-banner strong { color: var(--wm-blue); }
+
+  /* ── File pill ── */
+  .file-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; margin-top: 10px;
+    background: #e8f5fc; border: 1px solid var(--wm-blue);
+    border-radius: var(--radius);
+    font-size: 12px; color: var(--wm-text);
+  }
+  .file-pill .fp-icon { color: var(--wm-blue); font-size: 14px; }
+  .file-pill button {
+    margin-left: auto; background: none; border: none;
+    color: var(--wm-text-muted); cursor: pointer; font-size: 15px;
+  }
+
+  /* ── URL row ── */
+  .url-row { display: flex; gap: 8px; }
+  .url-row input { flex: 1; }
+  .btn-sm {
+    padding: 10px 16px; background: var(--wm-blue); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 13px; font-weight: 600;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-sm:hover { background: var(--wm-blue-dark); }
+
+  /* ── Generate button ── */
+  .btn-generate {
+    width: 100%; padding: 16px;
+    background: var(--wm-blue); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 16px; font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-generate:hover { background: var(--wm-blue-dark); transform: translateY(-1px); }
+  .btn-generate:disabled { background: var(--wm-gray); cursor: not-allowed; transform: none; }
+
+  /* ── Status ── */
+  .status-bar {
+    display: none; align-items: center; gap: 12px;
+    padding: 14px 16px; margin-bottom: 16px;
+    background: var(--wm-surface); border: 1px solid var(--wm-border);
+    border-radius: var(--radius);
+    font-size: 13px; color: var(--wm-text-muted);
+  }
+  .status-bar.visible { display: flex; }
+  .spinner {
+    width: 18px; height: 18px; flex-shrink: 0;
+    border: 2px solid var(--wm-border);
+    border-top-color: var(--wm-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Output ── */
+  .output-section { display: none; }
+  .output-section.visible { display: block; }
+  .output-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .output-header span {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: #fff; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .btn-download {
+    padding: 8px 20px; background: none;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 20px; color: #fff;
+    font-size: 12px; font-weight: 600;
+    font-family: 'Barlow', sans-serif;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-download:hover { background: rgba(255,255,255,0.1); }
+  .brochure-wrap {
+    border-radius: var(--radius-lg); overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 24px 0; }
+
+  .photo-drop-zone {
+    border: 2px dashed var(--wm-border);
+    border-radius: var(--radius);
+    padding: 18px; text-align: center;
+    cursor: pointer; margin-top: 10px;
+    background: var(--wm-surface); transition: all 0.2s;
+    font-size: 12px; color: var(--wm-text-muted);
+  }
+  .photo-drop-zone:hover, .photo-drop-zone.over {
+    border-color: var(--wm-blue); background: #e8f5fc;
+  }
+  .photo-drop-zone strong { color: var(--wm-blue); }
+
+  @media (max-width: 600px) {
+    .field-row { grid-template-columns: 1fr; }
+    .fmt-grid { grid-template-columns: 1fr 1fr; }
+    header { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">W</div>
+    <h1>Grupo Watermanía</h1>
+    <p>Generador de Brochures — Acceso restringido</p>
+    <div class="login-field">
+      <input type="password" id="pwd-input" placeholder="Contraseña de acceso" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error">Contraseña incorrecta. Intenta de nuevo.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-logo">
+      <img src="logo-watermania.png" alt="Grupo Watermanía" onerror="this.style.display='none'">
+    </div>
+    <div class="header-text">
+      <h1>Grupo Watermanía</h1>
+      <p>Generador de Brochures con IA · Información verificada · Búsqueda web</p>
+    </div>
+    <button class="header-logout" onclick="doLogout()">Cerrar sesión</button>
+  </header>
+
+  <div style="width:100%;max-width:860px;padding:0 16px 48px;">
+
+    <div class="sections-banner">
+      <strong>Secciones incluidas automáticamente:</strong> Título · Generalidades · Especificaciones técnicas · Tabla comparativa vs mercado · Consumo eléctrico · Garantías · Seguridad · Certificaciones · Compatibilidad con equipos · Fuentes verificadas
+    </div>
+
+    <!-- DOCUMENTO -->
+    <div class="card">
+      <div class="card-title">Documento del producto</div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('pdf',event)">PDF / Manual</button>
+        <button class="tab" onclick="switchTab('url',event)">URL</button>
+        <button class="tab" onclick="switchTab('text',event)">Texto libre</button>
+      </div>
+      <div id="tab-pdf" class="tab-panel active">
+        <div class="drop-zone" id="dz" onclick="document.getElementById('fi-doc').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')" ondrop="handleDocDrop(event)">
+          <div class="dz-icon">📄</div>
+          <p><strong>Clic o arrastra</strong> el PDF o manual técnico del producto</p>
+          <p style="font-size:11px;margin-top:4px;color:#8aabb8">PDF, JPG, PNG — máx. 10 MB</p>
+        </div>
+        <input type="file" id="fi-doc" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleDocSelect(event)">
+        <div id="doc-pill" style="display:none" class="file-pill">
+          <span class="fp-icon">📎</span>
+          <span id="doc-name"></span>
+          <button onclick="clearDoc()">✕</button>
+        </div>
+      </div>
+      <div id="tab-url" class="tab-panel">
+        <div class="url-row">
+          <div class="field" style="margin:0;flex:1">
+            <input type="text" id="url-input" placeholder="https://watermania.com.gt/producto/bomba-hayward...">
+          </div>
+          <button class="btn-sm" onclick="confirmUrl()" style="align-self:flex-end">Usar</button>
+        </div>
+        <p style="font-size:11px;color:var(--wm-text-muted);margin-top:8px">La IA leerá la página y buscará información adicional verificada.</p>
+      </div>
+      <div id="tab-text" class="tab-panel">
+        <div class="field" style="margin:0">
+          <textarea id="text-input" placeholder="Ej: Bomba Hayward Super Pump 1.5HP, modelo SP2610X15. Potencia 1.5HP, 115/230V, para piscinas hasta 45,000L..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOTOS -->
+    <div class="card">
+      <div class="card-title">Fotografías del producto</div>
+      <div class="photo-drop-zone" id="photo-dz"
+        onclick="document.getElementById('fi-photos').click()"
+        ondragover="event.preventDefault();this.classList.add('over')"
+        ondragleave="this.classList.remove('over')" ondrop="handlePhotoDrop(event)">
+        🖼️ <strong>Sube fotos del producto</strong> — JPG, PNG (hasta 5 imágenes)<br>
+        <span style="font-size:11px">Si no subes fotos, la IA busca la imagen exacta del modelo en la web</span>
+      </div>
+      <input type="file" id="fi-photos" style="display:none" accept=".jpg,.jpeg,.png" multiple onchange="handlePhotoSelect(event)">
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <!-- DATOS DEL PRODUCTO -->
+    <div class="card">
+      <div class="card-title">Datos del producto</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Nombre del producto *</label>
+          <input type="text" id="prod-name" placeholder="Ej: Bomba Hayward Super Pump 1.5HP">
+        </div>
+        <div class="field">
+          <label>Marca / Fabricante</label>
+          <input type="text" id="brand-name" placeholder="Ej: Hayward, Pentair, Zodiac...">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Modelo exacto</label>
+          <input type="text" id="model-name" placeholder="Ej: SP2610X15, VS-3HP...">
+        </div>
+        <div class="field">
+          <label>SKU / Número de parte</label>
+          <input type="text" id="sku-name" placeholder="Ej: SP2610X15, 342001...">
+        </div>
+      </div>
+    </div>
+
+    <!-- FORMATO -->
+    <div class="card">
+      <div class="card-title">Formato de salida</div>
+      <div class="fmt-grid">
+        <div class="fmt-card selected" onclick="selFmt(this,'brochure')">
+          <div class="fi">📋</div>
+          <div class="fn">Brochure</div>
+          <div class="fd">Completo con las 9 secciones</div>
+        </div>
+        <div class="fmt-card" onclick="selFmt(this,'infografia')">
+          <div class="fi">📊</div>
+          <div class="fn">Infografía</div>
+          <div class="fd">Visual compacto con datos clave</div>
+        </div>
+        <div class="fmt-card" onclick="selFmt(this,'ficha')">
+          <div class="fi">📌</div>
+          <div class="fn">Ficha técnica</div>
+          <div class="fd">Tablas de especificaciones</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERAR -->
+    <div class="status-bar" id="status-bar">
+      <div class="spinner"></div>
+      <span id="status-text">Iniciando...</span>
+    </div>
+
+    <button class="btn-generate" id="btn-gen" onclick="generate()">
+      <span>⚡</span> Generar brochure con IA
+    </button>
+
+    <div class="divider" id="out-divider" style="display:none"></div>
+
+    <div class="output-section" id="output-sec">
+      <div class="output-header">
+        <span>Brochure generado</span>
+        <button class="btn-download" onclick="downloadBrochure()">⬇ Descargar HTML</button>
+      </div>
+      <div class="brochure-wrap">
+        <iframe id="brochure-frame" style="width:100%;height:820px;border:none;display:block;background:#fff;"></iframe>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const APP_PASSWORD = 'watermania2025';
+let fmt = 'brochure';
+let docFile = null, docContent = '';
+let photoFiles = [], photoContents = [];
+let genHTML = '';
+let activeTab = 'pdf';
+
+function doLogin() {
+  const v = document.getElementById('pwd-input').value;
+  if (v === APP_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    sessionStorage.setItem('wm_auth', '1');
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('wm_auth');
+  location.reload();
+}
+
+if (sessionStorage.getItem('wm_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+function switchTab(tab, e) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function selFmt(el, f) {
+  document.querySelectorAll('.fmt-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected'); fmt = f;
+}
+
+function handleDocSelect(e) {
+  const file = e.target.files[0]; if (!file) return;
+  docFile = file;
+  document.getElementById('doc-name').textContent = file.name;
+  document.getElementById('doc-pill').style.display = 'flex';
+  const r = new FileReader(); r.onload = ev => { docContent = ev.target.result; }; r.readAsDataURL(file);
+}
+
+function handleDocDrop(e) {
+  e.preventDefault(); document.getElementById('dz').classList.remove('over');
+  const file = e.dataTransfer.files[0]; if (!file) return;
+  docFile = file;
+  document.getElementById('doc-name').textContent = file.name;
+  document.getElementById('doc-pill').style.display = 'flex';
+  const r = new FileReader(); r.onload = ev => { docContent = ev.target.result; }; r.readAsDataURL(file);
+}
+
+function clearDoc() {
+  docFile = null; docContent = '';
+  document.getElementById('fi-doc').value = '';
+  document.getElementById('doc-pill').style.display = 'none';
+}
+
+function confirmUrl() {
+  const v = document.getElementById('url-input').value.trim();
+  if (v) document.getElementById('url-input').style.borderColor = '#29ABE2';
+}
+
+function handlePhotoSelect(e) {
+  Array.from(e.target.files).forEach(f => addPhoto(f));
+}
+
+function handlePhotoDrop(e) {
+  e.preventDefault(); document.getElementById('photo-dz').classList.remove('over');
+  Array.from(e.dataTransfer.files).forEach(f => { if (f.type.startsWith('image/')) addPhoto(f); });
+}
+
+function addPhoto(file) {
+  if (photoFiles.length >= 5) { alert('Máximo 5 fotos.'); return; }
+  const r = new FileReader();
+  r.onload = ev => {
+    const idx = photoFiles.length;
+    photoFiles.push(file); photoContents.push(ev.target.result);
+    const grid = document.getElementById('photo-grid');
+    const wrap = document.createElement('div'); wrap.className = 'photo-thumb'; wrap.id = 'ph-' + idx;
+    wrap.innerHTML = `<img src="${ev.target.result}"><button onclick="removePhoto(${idx})">✕</button>`;
+    grid.appendChild(wrap);
+  };
+  r.readAsDataURL(file);
+}
+
+function removePhoto(idx) {
+  photoFiles.splice(idx,1); photoContents.splice(idx,1);
+  document.getElementById('ph-'+idx)?.remove();
+}
+
+function setSt(on, txt) {
+  document.getElementById('status-bar').classList.toggle('visible', on);
+  if (txt) document.getElementById('status-text').textContent = txt;
+}
+
+async function generate() {
+  const prod = document.getElementById('prod-name').value.trim();
+  const brand = document.getElementById('brand-name').value.trim();
+  const model = document.getElementById('model-name').value.trim();
+  const sku = document.getElementById('sku-name').value.trim();
+
+  if (!prod) { alert('El nombre del producto es obligatorio.'); return; }
+  if (activeTab === 'pdf' && !docContent && photoContents.length === 0) {
+    if (!confirm('No subiste ningún documento. ¿Continuar solo con búsqueda web?')) return;
+  }
+  if (activeTab === 'url' && !document.getElementById('url-input').value.trim()) { alert('Ingresa una URL.'); return; }
+  if (activeTab === 'text' && !document.getElementById('text-input').value.trim()) { alert('Ingresa descripción del producto.'); return; }
+
+  setSt(true, 'Preparando solicitud...');
+  document.getElementById('btn-gen').disabled = true;
+
+  const productId = [prod, brand, model, sku].filter(Boolean).join(' — ');
+  const hasPhotos = photoContents.length > 0;
+
+  let docPart = null;
+  if (docContent) {
+    const mime = docFile.type;
+    if (mime.startsWith('image/')) {
+      docPart = { type: 'image', source: { type: 'base64', media_type: mime, data: docContent.split(',')[1] } };
+    } else {
+      docPart = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: docContent.split(',')[1] } };
+    }
+  }
+
+  const photoParts = photoContents.map((pc, i) => ({
+    type: 'image',
+    source: { type: 'base64', media_type: photoFiles[i].type, data: pc.split(',')[1] }
+  }));
+
+  let textContent = '';
+  if (activeTab === 'url') textContent = `URL del producto: ${document.getElementById('url-input').value.trim()}`;
+  else if (activeTab === 'text') textContent = `Información del cliente:\n${document.getElementById('text-input').value.trim()}`;
+
+  try {
+    setSt(true, 'Buscando información técnica verificada en la web...');
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId, fmt, hasPhotos,
+        textContent, docPart, photoParts
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `Error ${response.status}`);
+    }
+
+    setSt(true, 'Compilando brochure con diseño Watermanía...');
+    const data = await response.json();
+    genHTML = data.html || '';
+
+    if (!genHTML || genHTML.length < 100) throw new Error('No se generó contenido. Intenta de nuevo.');
+
+    setSt(false);
+    renderBrochure(genHTML);
+
+  } catch (err) {
+    setSt(false);
+    document.getElementById('btn-gen').disabled = false;
+    alert('Error al generar: ' + err.message);
+  }
+}
+
+function renderBrochure(html) {
+  const frame = document.getElementById('brochure-frame');
+  const doc = frame.contentDocument || frame.contentWindow.document;
+  doc.open(); doc.write(html); doc.close();
+  document.getElementById('out-divider').style.display = 'block';
+  document.getElementById('output-sec').classList.add('visible');
+  document.getElementById('btn-gen').disabled = false;
+  document.getElementById('btn-gen').innerHTML = '<span>⚡</span> Generar nuevo brochure';
+  setTimeout(() => document.getElementById('output-sec').scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+}
+
+function downloadBrochure() {
+  if (!genHTML) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([genHTML], { type: 'text/html' }));
+  a.download = `brochure-watermania-${Date.now()}.html`;
+  a.click();
+}
+</script>
+</body>
+</html>
