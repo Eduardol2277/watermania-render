@@ -40,7 +40,16 @@ function buildResearchPrompt(productId, textContent) {
   return `Investiga el producto "${productId}" para Grupo Watermania Guatemala.
 ${textContent ? 'Informacion del cliente: ' + textContent : ''}
 
-Busca en la web y responde SOLO con JSON valido sin explicaciones ni markdown:
+Busca en la web:
+1. Especificaciones tecnicas oficiales del producto
+2. Consumo electrico si aplica
+3. Certificaciones oficiales
+4. Garantia del fabricante
+5. OBLIGATORIO: busca al menos 3 productos competidores o alternativos similares en el mercado (misma categoria, diferente marca). Compara caracteristicas, no precios.
+6. Normas de seguridad
+7. Imagen oficial exacta del producto
+
+Responde SOLO con JSON valido sin explicaciones ni markdown:
 {
   "nombre":"",
   "descripcion":"",
@@ -52,7 +61,7 @@ Busca en la web y responde SOLO con JSON valido sin explicaciones ni markdown:
   "capacidad_cobertura":"",
   "specs":[{"p":"","v":""}],
   "consumo":{"aplica":true,"voltaje":"","amperaje":"","watts":"","costo_gtq":""},
-  "comparativa":[{"marca":"","modelo":"","ventaja":"","desventaja":""}],
+  "comparativa":[{"marca":"","modelo":"","ventaja":"descripcion de ventaja de este competidor vs el producto principal","desventaja":"descripcion de desventaja de este competidor vs el producto principal"}],
   "garantia":{"anios":"","condiciones":""},
   "seguridad":[""],
   "certs":[{"nombre":"","desc":""}],
@@ -60,7 +69,12 @@ Busca en la web y responde SOLO con JSON valido sin explicaciones ni markdown:
   "imagen_url":""
 }
 
-REGLAS: Solo datos verificados. Si no encuentras algo usa null o []. NUNCA inventes. No incluyas precios en la comparativa.`;
+REGLAS CRITICAS:
+- Solo datos verificados con fuente web
+- Si no encuentras algo usa null o []
+- NUNCA inventes datos
+- No incluyas precios en comparativa
+- La comparativa DEBE tener al menos 2-3 competidores reales de la misma categoria`;
 }
 
 // ─── Research call ─────────────────────────────────────────────────────────────
@@ -355,39 +369,38 @@ function buildFicha(R, photoParts, productId, today) {
     ? `<table><tr><th>Norma / Advertencia</th></tr>${R.seguridad.filter(s=>s).map(s=>`<tr><td>⚠️ ${s}</td></tr>`).join('')}</table>`
     : '<div class="info">Seguir instrucciones del fabricante.</div>';
 
-  // Header strip for ficha
-  const headerStrip = `
-  <div style="background:#29ABE2;padding:0 32px;display:flex;align-items:center;justify-content:space-between">
-    <div style="padding:16px 0">
-      <div style="font-size:11px;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:1px">Ficha Técnica</div>
-      <div style="font-size:20px;font-weight:700;color:#fff">${name}</div>
-    </div>
-    <div style="text-align:right;padding:16px 0">
-      <div style="font-size:13px;font-weight:700;color:#fff">GRUPO WATERMANÍA</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.8)">www.watermania.com.gt | 2383-6700</div>
-    </div>
-  </div>`;
-
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <title>Ficha Técnica ${name} — Watermanía</title>
 <style>${BASE_CSS} .wrap { width: 820px; } .sec { padding: 18px 32px; } .sec-title { font-size:13px; }</style></head>
 <body><div class="wrap">
 
-${headerStrip}
-
-<!-- Foto + datos rápidos -->
-<div style="display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid #e8f0f5">
-  <div style="padding:16px;text-align:center;border-right:1px solid #e8f0f5;background:#fafcfe">
-    ${photoHTML(R, photoParts)}
-    ${R.garantia?.anios ? `<div style="margin-top:10px;font-size:12px;background:#d4edda;border-radius:6px;padding:6px;color:#155724"><strong>Garantía: ${R.garantia.anios} año(s)</strong><br>${R.garantia.condiciones||''}</div>` : ''}
+<!-- Header -->
+<div style="background:#29ABE2;padding:16px 32px;display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:1px">Ficha Técnica</div>
+    <div style="font-size:20px;font-weight:700;color:#fff">${name}</div>
   </div>
-  <div style="padding:16px 24px">
-    <div style="font-size:12px;font-weight:700;color:#29ABE2;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Descripción del producto</div>
-    <p style="font-size:13px;line-height:1.7;margin-bottom:10px">${R.descripcion||'Consultar con Watermanía.'}</p>
-    ${R.capacidad_cobertura?`<p style="font-size:12px"><strong>Capacidad:</strong> ${R.capacidad_cobertura}</p>`:''}
-    ${R.dimensiones_disponibles?`<p style="font-size:12px"><strong>Dimensiones:</strong> ${R.dimensiones_disponibles}</p>`:''}
-    ${R.materiales_construccion?`<p style="font-size:12px"><strong>Materiales:</strong> ${R.materiales_construccion}</p>`:''}
-    ${(R.certs||[]).length>0?`<div style="margin-top:10px">${R.certs.map(c=>`<span class="badge" style="font-size:10px">${c.nombre}</span>`).join('')}</div>`:''}
+  <div style="text-align:right">
+    <div style="font-size:13px;font-weight:700;color:#fff">GRUPO WATERMANÍA</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.8)">www.watermania.com.gt | 2383-6700</div>
+  </div>
+</div>
+
+<!-- Foto centrada -->
+<div style="padding:20px 32px;text-align:center;border-bottom:1px solid #e8f0f5;background:#fafcfe">
+  ${photoHTML(R, photoParts)}
+  ${R.garantia?.anios ? `<div style="display:inline-block;margin-top:12px;font-size:12px;background:#d4edda;border-radius:6px;padding:8px 16px;color:#155724"><strong>✅ Garantía: ${R.garantia.anios} año(s)</strong> — ${R.garantia.condiciones||''}</div>` : ''}
+  ${(R.certs||[]).length>0?`<div style="margin-top:10px">${R.certs.map(c=>`<span class="badge" style="font-size:10px">${c.nombre}</span>`).join('')}</div>`:''}
+</div>
+
+<!-- Descripción -->
+<div class="sec" style="border-bottom:1px solid #e8f0f5">
+  <div style="font-size:12px;font-weight:700;color:#29ABE2;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Descripción del producto</div>
+  <p style="font-size:13px;line-height:1.7;margin-bottom:10px">${R.descripcion||'Consultar con Watermanía.'}</p>
+  <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:8px">
+    ${R.capacidad_cobertura?`<div style="font-size:12px;background:#f0f8fd;padding:8px 12px;border-radius:6px;border:1px solid #b8dff0"><strong>Capacidad:</strong> ${R.capacidad_cobertura}</div>`:''}
+    ${R.dimensiones_disponibles?`<div style="font-size:12px;background:#f0f8fd;padding:8px 12px;border-radius:6px;border:1px solid #b8dff0"><strong>Dimensiones:</strong> ${R.dimensiones_disponibles}</div>`:''}
+    ${R.materiales_construccion?`<div style="font-size:12px;background:#f0f8fd;padding:8px 12px;border-radius:6px;border:1px solid #b8dff0"><strong>Materiales:</strong> ${R.materiales_construccion}</div>`:''}
   </div>
 </div>
 
