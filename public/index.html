@@ -493,7 +493,7 @@
 
     <div class="output-section" id="output-sec">
       <div class="output-header">
-        <span>Brochure generado</span>
+        <span id="output-title">Brochure generado</span>
         <button class="btn-download" onclick="downloadBrochure()">⬇ Descargar HTML</button>
       </div>
       <div class="brochure-wrap">
@@ -682,6 +682,8 @@ function renderBrochure(html) {
   const frame = document.getElementById('brochure-frame');
   const doc = frame.contentDocument || frame.contentWindow.document;
   doc.open(); doc.write(html); doc.close();
+  const fmtLabels = { brochure: 'Brochure generado', infografia: 'Infografía generada', ficha: 'Ficha técnica generada' };
+  document.getElementById('output-title').textContent = fmtLabels[fmt] || 'Documento generado';
   document.getElementById('out-divider').style.display = 'block';
   document.getElementById('output-sec').classList.add('visible');
   document.getElementById('btn-gen').disabled = false;
